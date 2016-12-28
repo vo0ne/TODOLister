@@ -19,11 +19,9 @@ class ChecklistViewController: UITableViewController {
         func sortWith(items: [ChecklistItem]) -> [ChecklistItem] {
             var sortedItems = [ChecklistItem]()
             sortedItems = items.sorted(by: { $0.text.characters.first! < $1.text.characters.first! })
-
             return sortedItems
         }
         items = sortWith(items: items)
-
         print(items)
         tableView.reloadData()
         sortBarButton.isEnabled = false //TODO
@@ -31,7 +29,6 @@ class ChecklistViewController: UITableViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
         if self.revealViewController() != nil {
             menuButton.target = self.revealViewController()
             menuButton.action = #selector(SWRevealViewController.revealToggle(_:))
@@ -105,10 +102,6 @@ class ChecklistViewController: UITableViewController {
     }
     // save function
 
-
-
-
-
     func saveToDolistItems() {
         let data = NSMutableData()
         let archiver = NSKeyedArchiver(forWritingWith: data)
@@ -177,11 +170,7 @@ extension ChecklistViewController: ItemDetailViewControllerDelegate {
         return items.count
     }
 
-
-
     // cell for row
-
-
     override func tableView(_ tableView: UITableView,
                             cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(
@@ -190,8 +179,6 @@ extension ChecklistViewController: ItemDetailViewControllerDelegate {
         configureText(for: cell, with: item)
         configureCheckmark(for: cell, with: item)
         return cell
-
-
     }
 
     // toggle check status
