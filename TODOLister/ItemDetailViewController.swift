@@ -56,21 +56,21 @@ class ItemDetailViewController: UITableViewController, UITextFieldDelegate {
             item.text = textField.text!
             delegate?.itemDetailViewController(self, didFinishEditing: item)
         } else {
-        
-        let item = ChecklistItem()
-        item.text = textField.text!
-        item.checked = false
-        delegate?.itemDetailViewController(self, didFinishAdding: item)
+            
+            let item = ChecklistItem()
+            item.text = textField.text!
+            item.checked = false
+            delegate?.itemDetailViewController(self, didFinishAdding: item)
         }
     }
     
-
+    
     func textField(_ textField: UITextField,                            // func for enable/disenable doneBarButton button
-                   shouldChangeCharactersIn range: NSRange,
-                   replacementString string: String) -> Bool {
+        shouldChangeCharactersIn range: NSRange,
+        replacementString string: String) -> Bool {
         let oldText = textField.text! as NSString
         let newText = oldText.replacingCharacters(in: range, with: string)
-         doneBarButton.isEnabled = newText.characters.count > 0
+        doneBarButton.isEnabled = newText.characters.count > 0
         return true
     }
     

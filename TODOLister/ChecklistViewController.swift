@@ -4,13 +4,31 @@
 //
 //  Created by Volodymyr Lavryk on 12.12.16.
 //  Copyright © 2016 Volodymyr Lavryk. All rights reserved.
-// ✅
+// ✅❌
 
 import UIKit
 
 class ChecklistViewController: UITableViewController, ItemDetailViewControllerDelegate {
     
+    @IBOutlet weak var menuButton: UIBarButtonItem!
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        if self.revealViewController() != nil {
+            menuButton.target = self.revealViewController()
+            menuButton.action = "revealToggle:"
+            self.view.addGestureRecognizer(self.revealViewController().panGestureRecognizer())
+        }
+    }
+    
+    @IBAction func editTapped(_ sender: UIBarButtonItem) {
+        self.isEditing = true
+    }
     //outlets and actions
+    
+    
+    
     
     @IBOutlet weak var sortBarButton: UIBarButtonItem!
     
@@ -23,20 +41,17 @@ class ChecklistViewController: UITableViewController, ItemDetailViewControllerDe
         }
         items = sortWith(items: items)
         
-        print( items)
+        print(items)
         tableView.reloadData()
         sortBarButton.isEnabled = false  //TODO
         
     }
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        
-    }
     
     
     
-    //items for tests
+    
+    //items 
     
     var items: [ChecklistItem]
     
@@ -213,7 +228,17 @@ class ChecklistViewController: UITableViewController, ItemDetailViewControllerDe
         }
     }
         
+    override func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
+        let elementToMove = items[sourceIndexPath.row]
+        items.remove(at: sourceIndexPath.row)
+        items.insert(elementToMove, at: destinationIndexPath.row)
+    }
+    
+    override func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool {
         
+        return true
+        
+    }
         
         
 }
