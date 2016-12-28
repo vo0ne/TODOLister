@@ -14,43 +14,16 @@ protocol ItemDetailViewControllerDelegate: class {
     func itemDetailViewController(_ controller: ItemDetailViewController, didFinishEditing item: ChecklistItem)
 }
 
-
-
-
 class ItemDetailViewController: UITableViewController, UITextFieldDelegate {
-    weak var delegate: ItemDetailViewControllerDelegate? // delegate for segue
     
+    weak var delegate: ItemDetailViewControllerDelegate? // delegate for segue
     var itemToEdit: ChecklistItem?
     
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        if let item = itemToEdit {
-            title = "Edit Item"
-            textField.text = item.text
-            doneBarButton.isEnabled = true
-        }
-    }
-    
-    override func tableView(_ tableView: UITableView, willSelectRowAt indexPath: IndexPath) -> IndexPath? {
-        return nil
-    }
-    
-    override func viewWillAppear(_ animated: Bool) { // focus on text field
-        super.viewWillAppear(animated)
-        textField.becomeFirstResponder()
-    }
-    
-    
-    
     @IBOutlet weak var textField: UITextField!
-    
     @IBOutlet weak var doneBarButton: UIBarButtonItem!
-    
     @IBAction func cancel() {                           // cancel buttom
         delegate?.itemDetailViewControllerDidCancel(self)
     }
-    
     @IBAction func done() {
         if let item = itemToEdit {
             item.text = textField.text!
@@ -64,6 +37,21 @@ class ItemDetailViewController: UITableViewController, UITextFieldDelegate {
         }
     }
     
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        if let item = itemToEdit {
+            title = "Edit Item"
+            textField.text = item.text
+            doneBarButton.isEnabled = true
+        }
+    }
+    override func tableView(_ tableView: UITableView, willSelectRowAt indexPath: IndexPath) -> IndexPath? {
+        return nil
+    }
+    override func viewWillAppear(_ animated: Bool) { // focus on text field
+        super.viewWillAppear(animated)
+        textField.becomeFirstResponder()
+    }
     
     func textField(_ textField: UITextField,                            // func for enable/disenable doneBarButton button
         shouldChangeCharactersIn range: NSRange,

@@ -8,30 +8,13 @@
 
 import UIKit
 
-class ChecklistViewController: UITableViewController, ItemDetailViewControllerDelegate {
+class ChecklistViewController:  UITableViewController {
     
     @IBOutlet weak var menuButton: UIBarButtonItem!
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        
-        if self.revealViewController() != nil {
-            menuButton.target = self.revealViewController()
-            menuButton.action = "revealToggle:"
-            self.view.addGestureRecognizer(self.revealViewController().panGestureRecognizer())
-        }
-    }
-    
     @IBAction func editTapped(_ sender: UIBarButtonItem) {
         self.isEditing = true
     }
-    //outlets and actions
-    
-    
-    
-    
     @IBOutlet weak var sortBarButton: UIBarButtonItem!
-    
     @IBAction func sortByAlphabet(_ sender: UIBarButtonItem) {
         func sortWith(items: [ChecklistItem]) -> [ChecklistItem] {
             var sortedItems = [ChecklistItem]()
@@ -44,14 +27,17 @@ class ChecklistViewController: UITableViewController, ItemDetailViewControllerDe
         print(items)
         tableView.reloadData()
         sortBarButton.isEnabled = false  //TODO
-        
     }
     
-    
-    
-    
-    
-    //items 
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        if self.revealViewController() != nil {
+            menuButton.target = self.revealViewController()
+            menuButton.action = #selector(SWRevealViewController.revealToggle(_:))
+            self.view.addGestureRecognizer(self.revealViewController().panGestureRecognizer())
+        }
+    }
     
     var items: [ChecklistItem]
     
@@ -60,9 +46,86 @@ class ChecklistViewController: UITableViewController, ItemDetailViewControllerDe
         super.init(coder: aDecoder)
         loadChecklistItems()
     }
+
+    func itemDetailViewController(_ controller: ItemDetailViewController, didFinishAdding item: ChecklistItem) { // if add new item
+        let newRowIndex = items.count
+        items.append(item)
+        
+        let indexPath = IndexPath(row: newRowIndex, section: 0)
+        let indexPaths = [indexPath]
+        tableView.insertRows(at: indexPaths, with: .automatic)
+        dismiss(animated: true, completion: nil)
+        sortBarButton.isEnabled = true
+         saveToDolistItems()
+    }
+
+    func itemDetailViewController(_ controller: ItemDetailViewController, didFinishEditing item: ChecklistItem) { //if edit item
+        if let index = items.index(of: item) {
+            let indexPath = IndexPath(row: index, section: 0)
+            if let cell = tableView.cellForRow(at: indexPath) {
+                configureText(for: cell, with: item)
+            }
+        }
+        sortBarButton.isEnabled = true
+        dismiss(animated: true, completion: nil)
+         saveToDolistItems()
+    }
     
+    // cancel
+    func itemDetailViewControllerDidCancel(
+        _ controller: ItemDetailViewController) {
+        dismiss(animated: true, completion: nil)
+    }
+    // checkmark configure
+        func configureCheckmark(for cell: UITableViewCell,
+                            with item: ChecklistItem) {
+        let label = cell.viewWithTag(1001) as! UILabel
+        if item.checked {
+            label.text = "✅"
+        } else {
+            label.text = "❌"
+        }
+    }
+    // text of TODO task
     
-    // prerape for delegate beetwen two views
+    func configureText(for cell: UITableViewCell,
+                       with item: ChecklistItem) {
+        let label = cell.viewWithTag(1000) as! UILabel
+        label.text = item.text
+    }
+    //directory for save items
+    
+    func documentsDirectory() -> URL {
+        let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+        
+            return paths[0]
+        }
+        func dataFilePath() -> URL {
+            return documentsDirectory().appendingPathComponent("TODOLister.plist")
+        }
+    // save function
+    
+    func saveToDolistItems() {
+        let data = NSMutableData()
+        let archiver = NSKeyedArchiver(forWritingWith: data)
+        archiver.encode(items, forKey: "ChecklistItems")
+        archiver.finishEncoding()
+        data.write(to: dataFilePath(), atomically: true)
+    }
+        
+   // load from memmory
+    func loadChecklistItems(){
+        let path = dataFilePath()
+        if let data = try? Data(contentsOf: path) {
+            let unarchiver = NSKeyedUnarchiver(forReadingWith: data)
+            items = unarchiver.decodeObject(forKey: "ChecklistItems") as! [ChecklistItem]
+            unarchiver.finishDecoding()
+        }
+    }
+    
+}
+
+extension ChecklistViewController: ItemDetailViewControllerDelegate {
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "AddItem" {
@@ -81,47 +144,27 @@ class ChecklistViewController: UITableViewController, ItemDetailViewControllerDe
             }
         }
     }
+
+    override func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
+        let elementToMove = items[sourceIndexPath.row]
+        items.remove(at: sourceIndexPath.row)
+        items.insert(elementToMove, at: destinationIndexPath.row)
+    }
     
-    // add TODO tast to list
-    
-    func itemDetailViewController(_ controller: ItemDetailViewController, didFinishAdding item: ChecklistItem) { // if add new item
-        let newRowIndex = items.count
-        items.append(item)
+    override func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool {
         
-        let indexPath = IndexPath(row: newRowIndex, section: 0)
+        return true
+        
+    }
+    
+    override func  tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+        items.remove(at: indexPath.row)
+        
         let indexPaths = [indexPath]
-        tableView.insertRows(at: indexPaths, with: .automatic)
-        dismiss(animated: true, completion: nil)
+        tableView.deleteRows(at: indexPaths, with: .automatic)
         sortBarButton.isEnabled = true
-         saveToDolistItems()
+        saveToDolistItems()
     }
-    
-    
-    
-    func itemDetailViewController(_ controller: ItemDetailViewController, didFinishEditing item: ChecklistItem) { //if edit item
-        if let index = items.index(of: item) {
-            let indexPath = IndexPath(row: index, section: 0)
-            if let cell = tableView.cellForRow(at: indexPath) {
-                configureText(for: cell, with: item)
-            }
-        }
-        sortBarButton.isEnabled = true
-        dismiss(animated: true, completion: nil)
-         saveToDolistItems()
-    }
-    
-    
-    
-    // cancel
-    
-    func itemDetailViewControllerDidCancel(
-        _ controller: ItemDetailViewController) {
-        dismiss(animated: true, completion: nil)
-    }
-    
-    
-    
-    
     
     // numbers of rows in section
     
@@ -159,86 +202,4 @@ class ChecklistViewController: UITableViewController, ItemDetailViewControllerDe
         tableView.deselectRow(at: indexPath, animated: true)
         saveToDolistItems()
     }
-    
-    
-    // checkmark configure
-    
-    func configureCheckmark(for cell: UITableViewCell,
-                            with item: ChecklistItem) {
-        let label = cell.viewWithTag(1001) as! UILabel
-        if item.checked {
-            label.text = "✅"
-        } else {
-            label.text = "❌"
-        }
-    }
-    
-    
-    // remove item from list
-    
-    override func  tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
-        items.remove(at: indexPath.row)
-        
-        let indexPaths = [indexPath]
-        tableView.deleteRows(at: indexPaths, with: .automatic)
-        sortBarButton.isEnabled = true
-        saveToDolistItems()
-    }
-    
-    
-    
-    // text of TODO task
-    func configureText(for cell: UITableViewCell,
-                       with item: ChecklistItem) {
-        let label = cell.viewWithTag(1000) as! UILabel
-        label.text = item.text
-    }
-    
-    
-    
-    //directory for save items
-    func documentsDirectory() -> URL {
-        let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
-        
-            return paths[0]
-        }
-        func dataFilePath() -> URL {
-            return documentsDirectory().appendingPathComponent("TODOLister.plist")
-        }
-    
-    // save function
-    
-    func saveToDolistItems() {
-        let data = NSMutableData()
-        let archiver = NSKeyedArchiver(forWritingWith: data)
-        archiver.encode(items, forKey: "ChecklistItems")
-        archiver.finishEncoding()
-        data.write(to: dataFilePath(), atomically: true)
-    }
-        
-   // load from memmory
-    
-    
-    func loadChecklistItems(){
-        let path = dataFilePath()
-        if let data = try? Data(contentsOf: path) {
-            let unarchiver = NSKeyedUnarchiver(forReadingWith: data)
-            items = unarchiver.decodeObject(forKey: "ChecklistItems") as! [ChecklistItem]
-            unarchiver.finishDecoding()
-        }
-    }
-        
-    override func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
-        let elementToMove = items[sourceIndexPath.row]
-        items.remove(at: sourceIndexPath.row)
-        items.insert(elementToMove, at: destinationIndexPath.row)
-    }
-    
-    override func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool {
-        
-        return true
-        
-    }
-        
-        
 }
